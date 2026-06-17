@@ -94,15 +94,57 @@ def assign(obj, mat):
 
 # --------------------------------------------------------------------- meshes
 
-def add_mesh(name, verts, faces, col, mat=None):
-    """Build an object from raw vertex/face lists."""
+def add_mesh(name, verts, faces, col, mat=None, uv_scale=2.0, generate_uvs=True):
+    """Build an object from raw vertex/face lists.
+
+    By default this now also generates a UV map via *box projection* scaled to
+    real-world size (uv_scale = world-metres per texture tile). Box projection
+    picks, per face, the dominant axis of the face normal and projects the other
+    two world axes into UV space — exactly right for the axis-aligned boxes that
+    make up the museum (walls/floor/ceiling), so a texture tiles at a consistent
+    physical scale on every surface regardless of that surface's size.
+
+    Without UVs a texture has nowhere to map and renders as a flat average colour
+    (the 'sandstone but no bricks' bug). uv_scale 2.0 => the texture repeats every
+    2 m; with the Ancient wall texture (4 courses/tile) that yields realistic
+    ~0.5 m ashlar blocks. Pass generate_uvs=False for meshes that supply their own
+    UVs."""
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata([Vector(v) for v in verts], [], faces)
     mesh.update()
+
+    if generate_uvs and bmesh is not None:
+        _box_project_uvs(mesh, uv_scale)
+
     obj = bpy.data.objects.new(name, mesh)
     link(obj, col)
     assign(obj, mat)
     return obj
+
+
+def _box_project_uvs(mesh, scale=0.5):
+    """Create/overwrite a UV layer using per-face box (planar-by-dominant-axis)
+    projection in object space. `scale` is world metres per UV tile."""
+    inv = 1.0 / max(1e-6, scale)
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    uv_layer = bm.loops.layers.uv.verify()
+    for face in bm.faces:
+        n = face.normal
+        ax, ay, az = abs(n.x), abs(n.y), abs(n.z)
+        # choose the two axes to keep based on the dominant normal axis
+        for loop in face.loops:
+            co = loop.vert.co
+            if az >= ax and az >= ay:        # facing up/down  -> use X,Y
+                u, v = co.x, co.y
+            elif ax >= ay:                   # facing +/-X     -> use Y,Z
+                u, v = co.y, co.z
+            else:                            # facing +/-Y     -> use X,Z
+                u, v = co.x, co.z
+            loop[uv_layer].uv = (u * inv, v * inv)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.update()
 
 
 def box(name, size=(1, 1, 1), location=(0, 0, 0), col=None, mat=None, bevel=0.0):
@@ -255,7 +297,7 @@ def export_collection(col, out_path, fmt='FBX'):
         bpy.ops.export_scene.fbx(
             filepath=out_path, use_selection=True, apply_unit_scale=True,
             apply_scale_options='FBX_SCALE_ALL', bake_space_transform=True,
-            mesh_smooth_type='FACE', use_mesh_modifiers=True,
+            mesh_smooth_type='FACE', use_mesh_modifiers=True, use_tspace=True,
             add_leaf_bones=False, path_mode='COPY', embed_textures=False,
             axis_forward='-Z', axis_up='Y')             # Unity axis convention
     else:
