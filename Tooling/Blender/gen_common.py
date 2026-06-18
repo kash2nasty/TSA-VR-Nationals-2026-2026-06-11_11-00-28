@@ -271,6 +271,39 @@ def apply_transforms(obj):
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
 
+def parent_keep_world(child, parent):
+    """Parent `child` to `parent` while keeping `child` exactly where it is —
+    in a way that SURVIVES FBX EXPORT.
+
+    Why this exists (the 'exploded artifacts' bug):
+    The old pattern was `apply_transforms(child); child.parent = parent`. That
+    bakes the child's WORLD position into its mesh vertices and zeroes the object
+    transform, THEN parents it. Blender keeps the child visually in place by
+    storing a hidden 'parent inverse' matrix — but the FBX exporter does NOT write
+    that matrix out. On import, Unity computes the child's position as
+    parent_position + child_local_position, and since the child's vertices are
+    already baked to world AND the object's local position is zero, the result is
+    that the parent's offset gets added on top => the child is flung to roughly
+    double its intended offset. Every baked-then-parented part 'explodes'; the only
+    exhibit that looked right (the cipher disk) was the one that never baked.
+
+    The fix: parent first, clear the parent-inverse (the thing FBX drops), then
+    restore the child's true world transform by writing it into matrix_world. Now
+    the child's LOCAL transform genuinely encodes 'where it sits relative to the
+    parent', which is exactly what FBX exports and what Unity reads back. Blender's
+    viewport and the exported FBX now agree.
+
+    Use this INSTEAD OF `apply_transforms(child); child.parent = parent`."""
+    if parent is None:
+        child.parent = None
+        return child
+    world = child.matrix_world.copy()              # remember current world pose
+    child.parent = parent
+    child.matrix_parent_inverse.identity()         # drop the inverse FBX won't export
+    child.matrix_world = world                     # re-encode pose as a real local xform
+    return child
+
+
 def join(objects, name):
     """Join a list of mesh objects into the first one and rename it."""
     meshes = [o for o in objects if o and o.type == 'MESH']
