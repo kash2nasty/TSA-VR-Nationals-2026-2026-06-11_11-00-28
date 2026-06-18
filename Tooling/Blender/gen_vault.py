@@ -57,27 +57,31 @@ def build():
     door_pivot = gc.add_empty("Vault_DoorPivot", location=(0, HINGE_Y, 0), col=col, size=0.06)
     door = gc.box("Vault_Door", size=(DOOR_T, DOOR_W, DOOR_H),
                   location=(0, HINGE_Y + DOOR_W * 0.5, DOOR_H * 0.5), col=col, mat=steel, bevel=0.03)
-    gc.parent_keep_world(door, door_pivot)
+    door.parent = door_pivot
+    gc.apply_transforms(door)
 
     # Circular locking ring — built then transform-baked before parenting to door.
     ring = gc.ring("Vault_LockingRing", outer=0.7, inner=0.5, depth=0.12,
                    location=(DOOR_T * 0.5 + 0.02, HINGE_Y + DOOR_W * 0.5, DOOR_H * 0.5),
                    col=col, mat=dark, segments=64)
     ring.rotation_euler = (0, 1.5708, 0)
-    gc.parent_keep_world(ring, door)
+    gc.apply_transforms(ring)
+    ring.parent = door
 
     # Central wheel hub + spokes.
     hub = gc.cylinder("Vault_Wheel", radius=0.16, depth=0.10,
                       location=(DOOR_T * 0.5 + 0.05, HINGE_Y + DOOR_W * 0.5, DOOR_H * 0.5),
                       col=col, mat=steel, segments=32, axis='X')
-    gc.parent_keep_world(hub, door)
+    gc.apply_transforms(hub)
+    hub.parent = door
     for k in range(4):
         ang = k * 1.5708
         spoke = gc.box(f"Vault_Spoke{k}", size=(0.05, 0.5, 0.05),
                        location=(DOOR_T * 0.5 + 0.04, HINGE_Y + DOOR_W * 0.5, DOOR_H * 0.5),
                        col=col, mat=steel)
         spoke.rotation_euler = (ang, 0, 0)
-        gc.parent_keep_world(spoke, door)  # parent to door not ring so spokes don't spin with lock animation
+        gc.apply_transforms(spoke)
+        spoke.parent = door  # parent to door not ring so spokes don't spin with lock animation
 
     # --- status lights (beside the door) -------------------------------------
     for i in range(3):
@@ -107,10 +111,9 @@ def build():
         cap = gc.box(f"VaultKey_{key}", size=(0.03, 0.05, 0.05),
                      location=(panel_x + 0.04, ky, kz), col=col, mat=keymat)
         glyph = "↵" if key == "ENTER" else ("⌫" if key == "CLEAR" else key)
-        key_label = gc.text(f"VaultKeyLabel_{key}", glyph, size=0.03,
-                            location=(panel_x + 0.06, ky, kz), rotation=(1.5708, 0, 1.5708),
-                            col=col, mat=label, extrude=0.002)
-        gc.parent_keep_world(key_label, cap)
+        gc.text(f"VaultKeyLabel_{key}", glyph, size=0.03,
+                location=(panel_x + 0.06, ky, kz), rotation=(1.5708, 0, 1.5708),
+                col=col, mat=label, extrude=0.002).parent = cap
 
     # --- interior archive shelving (revealed on open) ------------------------
     for s in range(3):
