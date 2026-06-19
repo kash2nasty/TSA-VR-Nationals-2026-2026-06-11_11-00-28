@@ -242,6 +242,26 @@ def add_empty(name, location=(0, 0, 0), col=None, size=0.05):
     return e
 
 
+def parent_all_to_root(col, root_name):
+    """Give a collection a single named ROOT empty at the origin and parent every
+    current top-level object under it (children of children are left alone — they
+    already have their parent).
+
+    Why: each exhibit is exported as its own FBX, but its parts were a flat set of
+    sibling objects with no single handle. After this call the whole exhibit hangs
+    off one root, so in Unity you can grab/position/rotate the entire prop with one
+    transform, and the prefab has a clean single top node. Uses parent_keep_world so
+    nothing shifts and the relationship survives FBX export. Call this LAST in a
+    generator's build(), just before `return col`."""
+    root = add_empty(root_name, location=(0, 0, 0), col=col, size=0.2)
+    # Snapshot the current top-level objects (those with no parent yet), excluding
+    # the root we just made, so we don't reparent mid-iteration.
+    tops = [o for o in list(col.objects) if o.parent is None and o is not root]
+    for o in tops:
+        parent_keep_world(o, root)
+    return root
+
+
 # ------------------------------------------------------------------- helpers
 
 TWO_PI = 2.0 * math.pi
@@ -271,6 +291,39 @@ def apply_transforms(obj):
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
 
+def parent_keep_world(child, parent):
+    """Parent `child` to `parent` while keeping `child` exactly where it is —
+    in a way that SURVIVES FBX EXPORT.
+
+    Why this exists (the 'exploded artifacts' bug):
+    The old pattern was `apply_transforms(child); child.parent = parent`. That
+    bakes the child's WORLD position into its mesh vertices and zeroes the object
+    transform, THEN parents it. Blender keeps the child visually in place by
+    storing a hidden 'parent inverse' matrix — but the FBX exporter does NOT write
+    that matrix out. On import, Unity computes the child's position as
+    parent_position + child_local_position, and since the child's vertices are
+    already baked to world AND the object's local position is zero, the result is
+    that the parent's offset gets added on top => the child is flung to roughly
+    double its intended offset. Every baked-then-parented part 'explodes'; the only
+    exhibit that looked right (the cipher disk) was the one that never baked.
+
+    The fix: parent first, clear the parent-inverse (the thing FBX drops), then
+    restore the child's true world transform by writing it into matrix_world. Now
+    the child's LOCAL transform genuinely encodes 'where it sits relative to the
+    parent', which is exactly what FBX exports and what Unity reads back. Blender's
+    viewport and the exported FBX now agree.
+
+    Use this INSTEAD OF `apply_transforms(child); child.parent = parent`."""
+    if parent is None:
+        child.parent = None
+        return child
+    world = child.matrix_world.copy()              # remember current world pose
+    child.parent = parent
+    child.matrix_parent_inverse.identity()         # drop the inverse FBX won't export
+    child.matrix_world = world                     # re-encode pose as a real local xform
+    return child
+
+
 def join(objects, name):
     """Join a list of mesh objects into the first one and rename it."""
     meshes = [o for o in objects if o and o.type == 'MESH']
@@ -291,18 +344,6 @@ def letters():
 
 # -------------------------------------------------------------------- export
 
-def reparent_to_root(col, root_name):
-    """Create a root empty and parent every top-level object in the collection to it.
-    This gives Unity a single root GameObject to place/move as a unit."""
-    root = add_empty(root_name, location=(0, 0, 0), col=col, size=0.1)
-    for obj in list(col.all_objects):
-        if obj is root:
-            continue
-        if obj.parent is None:
-            obj.parent = root
-    return root
-
-
 def export_collection(col, out_path, fmt='FBX'):
     """Export a single collection to FBX or glTF with Quest-friendly settings."""
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -312,7 +353,7 @@ def export_collection(col, out_path, fmt='FBX'):
     if fmt.upper() == 'FBX':
         bpy.ops.export_scene.fbx(
             filepath=out_path, use_selection=True, apply_unit_scale=True,
-            apply_scale_options='FBX_SCALE_ALL', bake_space_transform=True,
+            apply_scale_options='FBX_SCALE_ALL', bake_space_transform=False,
             mesh_smooth_type='FACE', use_mesh_modifiers=True, use_tspace=True,
             add_leaf_bones=False, path_mode='COPY', embed_textures=False,
             axis_forward='-Z', axis_up='Y')             # Unity axis convention

@@ -54,7 +54,6 @@ def build():
     if bpy is not None:
         build_morph_mesh(col, glow, pivot)
 
-    gc.reparent_to_root(col, "Reveal_Root")
     print("[gen_reveal_sculpture] built 3 stages (stele/gears/circuit) + morph mesh.")
     return col
 
@@ -75,7 +74,7 @@ def build_stele(col, mat, pivot):
                             location=(0, -0.09, z), col=col, mat=mat))
     stage = gc.join(parts, "Reveal_Stage_Roman")
     if stage:
-        stage.parent = pivot
+        gc.parent_keep_world(stage, pivot)
 
 
 # ----------------------------------------------------------------- stage 2
@@ -106,7 +105,7 @@ def build_gears(col, mat, pivot):
     ]
     stage = gc.join(gears, "Reveal_Stage_Gears")
     if stage:
-        stage.parent = pivot
+        gc.parent_keep_world(stage, pivot)
 
 
 # ----------------------------------------------------------------- stage 3
@@ -130,7 +129,7 @@ def build_circuit(col, mat, pivot):
                             location=(cx, 0.05, cz), col=col, mat=mat))
     stage = gc.join(parts, "Reveal_Stage_Circuit")
     if stage:
-        stage.parent = pivot
+        gc.parent_keep_world(stage, pivot)
 
 
 # --------------------------------------------------- optional shape-key mesh
@@ -150,7 +149,7 @@ def build_morph_mesh(col, mat, pivot):
     gc.link(obj, col)
     gc.assign(obj, mat)
     obj.location = (0, 0, 1.8)
-    obj.parent = pivot
+    gc.parent_keep_world(obj, pivot)
 
     # Basis first.
     obj.shape_key_add(name="Basis", from_mix=False)
