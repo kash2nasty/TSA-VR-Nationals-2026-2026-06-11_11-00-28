@@ -1,8 +1,10 @@
 {
   "dependencies": {
     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
+    "com.unity.probuilder": "5.2.4",
     "com.unity.render-pipelines.universal": "14.0.12",
     "com.unity.textmeshpro": "3.0.9",
+    "com.unity.visualeffectgraph": "14.0.12",
     "com.unity.xr.interaction.toolkit": "2.6.5",
     "com.unity.xr.management": "4.5.4",
     "com.unity.xr.oculus": "4.5.4",
