@@ -112,3 +112,11 @@ __pycache__/
 
 # Local screenshot dump (not part of the project)
 sszip/
+
+# Unity Burst debug output (build artifact, "DoNotShip" — should never be committed)
+/[Dd]ECRYPTED_BurstDebugInformation_DoNotShip/
+*_BurstDebugInformation_DoNotShip/
+
+# Claude Code local working files (CLAUDE.md itself is kept tracked on purpose)
+.claude/
+!CLAUDE.md
