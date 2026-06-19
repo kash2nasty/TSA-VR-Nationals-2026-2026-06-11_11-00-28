@@ -23,24 +23,24 @@ headset.
 
 ---
 
-## 2. CRITICAL — repo layout gotcha (read before editing anything)
+## 2. Repo layout (resolved Session 9 — was a two-clone mess)
 
-There are **TWO clones of the same git repo** on this machine, both at the same
-commit and the same `origin` (`github.com/kash2nasty/TSA-VR-Nationals-2026-2026-06-11_11-00-28`):
+**There is now ONE project**, and it is this folder (Claude's CWD == the Unity
+project Unity opens):
 
-| Path | Role |
-|---|---|
-| `C:/Users/patel/TSA-VR-Nationals-2026/` (PARENT) | **The live Unity project.** Has `Library/`, `Builds/`, `decrypted_main.apk`, `UserSettings/`. This is what the Unity Editor opens. |
-| `C:/Users/patel/TSA-VR-Nationals-2026/TSA-VR-Nationals-2026-2026-06-11_11-00-28/` (INNER) | **Claude's working directory (CWD).** A plain second clone (not a worktree — separate `.git`). |
+`C:/Users/patel/TSA-VR-Nationals-2026/TSA-VR-Nationals-2026-2026-06-11_11-00-28/`
 
-**Consequence:** files I edit in the INNER clone are **NOT seen by Unity** (which
-opens the PARENT) until they are synced. Sync happens via git (commit/push from
-one, pull in the other) — there is no shared filesystem link.
+History: there used to be two clones — an OUTER (`C:/Users/patel/TSA-VR-Nationals-2026/`)
+that Unity opened, and this INNER clone (Claude's CWD). Session 9 consolidated to
+one by gutting the OUTER. The OUTER folder still physically exists as the *parent
+directory* of this one, but its `Assets/`, `ProjectSettings/`, and `.git` were
+deleted; only orphaned Unity junk (`Library/`, `Logs/`, `Temp/`, `Packages/`) may
+linger there. **That leftover junk is NOT the project — ignore it / it can be
+deleted.** Unity should be opened on THIS inner folder.
 
-**Before doing source edits that the user needs to see in Unity, confirm with the
-user which clone they want me to edit, or whether to edit the parent directly.**
-For pure code/tooling changes that will be committed and pulled, editing the
-inner clone is fine. (See open question Q1 at the bottom.)
+**Consequence now:** edits here ARE what Unity sees (once Unity is opened on this
+folder). No more cross-clone sync. If you ever see a sibling/parent copy with
+Assets again, it's a mistake — don't edit it.
 
 ---
 
@@ -198,13 +198,23 @@ in Session 8 (had been stacking on Splash).
 
 ---
 
-## 11. Verification limits (what I CAN'T check without you)
+## 11. Verification limits + the Unity MCP bridge (Session 9)
 
-I can read/edit text files (scripts, .py, .md, .json) but I **cannot** open the
-Unity Editor, see the scene graph live, run the game, or look through the headset.
-Scene contents (`.unity`) are large YAML and unreliable to verify by reading.
-When a claim depends on scene state, in-editor wiring, or headset behavior, I'll
-ask you rather than guess. See open questions below.
+Without tooling I can read/edit text files but **cannot** open the Unity Editor,
+see the live scene graph, run the game, or look through the headset. Scene files
+(`.unity`) are large YAML, unreliable to read.
+
+**To remove that blind spot we added the MCP for Unity bridge** (`CoplayDev/unity-mcp`,
+package `com.coplaydev.unity-mcp`, pinned in `Packages/manifest.json`). When the
+project is open in Unity AND Claude Code's MCP server is connected, I CAN read the
+scene hierarchy, inspect GameObjects/components/materials, read the Console, and
+make edits directly. Prereqs installed Session 9: `uv` (at `C:/Users/patel/.local/bin`,
+on PATH), Python 3.13.5 (`py` launcher), Node 24.
+
+If the Unity MCP tools are NOT available in a session, the bridge isn't connected —
+fall back to asking the user / guided steps. To bring it online: open this project
+in Unity (imports the package), complete the MCP-for-Unity setup wizard (it verifies
+uv/python and configures Claude Code), then restart Claude Code.
 
 ---
 
@@ -226,10 +236,18 @@ ask you rather than guess. See open questions below.
 5. Interior lighting tweaks; exhibit materials (some still plain gray); FX shaders (Hologram_URP, EnergyScanline_URP) on sculpture + vault.
 6. Record in-headset + edit to ~2:40 showcase video.
 
+**Active focus (Session 9):** the 3 interactive exhibits (Enigma, Vault,
+RevealSculpture) render WRONG in the scene — parts "disconnected"/scattered and
+materials gray/black — while their `Generated/*.fbx` previews look correct and
+assembled. Goal: make the interactive exhibits look like Tejas's decorative `Hero`
+models (which build correct URP materials in C#), or failing that rebuild/replace
+them. Diagnosis so far: scene instances are old broken copies (§9) and/or the
+FBX-imported materials aren't set up like Tejas's procedural URP materials. Best
+fixed once the Unity MCP bridge (§11) is connected so the scene can be inspected.
+
+**Done (Session 9):** consolidated to a single project (gutted the OUTER clone, §2);
+added the Unity MCP bridge + installed uv; untracked the Burst debug junk.
+
 **Done (Session 8):** Blender explosion + bake_space_transform fixes; Tejas museum
 system merged; Reveal room X position fix; old Museum_Architecture disabled; Ancient
 Room hybrid complete & confirmed in headset.
-
-## Open questions for the user (Q#)
-- **Q1 — Which clone do I edit?** Unity opens the PARENT; my CWD is the INNER clone (§2). For source edits you want to see in Unity, do you want me to edit the parent directly, or keep editing the inner clone and you pull? 
-- **Q2 — Untrack build junk?** `DECRYPTED_BurstDebugInformation_DoNotShip/` is committed to git but is build output. I've added it to .gitignore; want me to also `git rm --cached` it so it stops being tracked?
