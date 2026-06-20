@@ -3,7 +3,22 @@ guid: fc96219dc69079c499d8ca8ad0380eda
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RevealBrass
+    second: {fileID: 2100000, guid: 0b0396260cdec0145ba5fd75ce265edc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RevealGlow
+    second: {fileID: 2100000, guid: 98f88b87fd54de2408ecca0b830eb7ef, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RevealStone
+    second: {fileID: 2100000, guid: ab063042e654f8f40a668eb37e13a57c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
