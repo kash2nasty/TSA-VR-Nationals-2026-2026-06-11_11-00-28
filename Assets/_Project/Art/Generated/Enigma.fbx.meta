@@ -3,7 +3,37 @@ guid: d0c96ee3283a64b44a0823ff44a73290
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bakelite
+    second: {fileID: 2100000, guid: e039bc9555dff7d4596eaa279bc12f12, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Brass
+    second: {fileID: 2100000, guid: f5a03037dc80d7d4fa34e58887e5a18a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: KeyIvory
+    second: {fileID: 2100000, guid: 51bbe4537ae4474479a583a38074da63, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LampGlass
+    second: {fileID: 2100000, guid: 92675296361ad784ab79d8216662fe40, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RotorGlyph
+    second: {fileID: 2100000, guid: 51bbe4537ae4474479a583a38074da63, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Steel
+    second: {fileID: 2100000, guid: 8e5cdb8b4cec5ed4d85e9a2ad77f4c44, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

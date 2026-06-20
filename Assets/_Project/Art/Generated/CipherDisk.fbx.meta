@@ -3,7 +3,27 @@ guid: d85f02343086a0649afad57efed03af1
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Bronze
+    second: {fileID: 2100000, guid: f5a03037dc80d7d4fa34e58887e5a18a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DarkBronze
+    second: {fileID: 2100000, guid: a66b4a16c67e3414c840dedeae20d986, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GlyphEmissive
+    second: {fileID: 2100000, guid: 7fad71a899b113d478685418049c737c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Stone
+    second: {fileID: 2100000, guid: 5b0aadc98eb828d40a343076e31e1d03, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
