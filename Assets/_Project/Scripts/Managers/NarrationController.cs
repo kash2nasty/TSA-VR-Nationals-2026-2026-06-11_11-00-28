@@ -45,7 +45,7 @@ namespace Decrypted.Managers
         private static readonly Dictionary<MuseumState, string> Intro = new()
         {
             { MuseumState.Splash,
-                "Welcome to DECRYPTED — a walk through the history of secret writing. " +
+                "Welcome to DECRYPTED, a walk through the history of secret writing. " +
                 "For three thousand years, the art of hiding a message has shaped the fate of empires." },
             { MuseumState.Atrium,
                 "Ahead lie four chapters in the story of cryptography. Each exhibit holds a puzzle. " +
@@ -68,9 +68,9 @@ namespace Decrypted.Managers
         private static readonly Dictionary<MuseumState, string> Solved = new()
         {
             { MuseumState.AncientRoom,
-                "Decoded: CROSS THE RUBICON — Caesar's most famous order. The die is cast." },
+                "Decoded: CROSS THE RUBICON. Caesar's most famous order. The die is cast." },
             { MuseumState.WWIIRoom,
-                "Decoded: VICTORY. The signal is broken — and with it, the tide of the war." },
+                "Decoded: VICTORY. The signal is broken, and with it, the tide of the war." },
             { MuseumState.VaultRoom,
                 "Access granted. A secret is only ever as safe as the key that guards it." },
         };

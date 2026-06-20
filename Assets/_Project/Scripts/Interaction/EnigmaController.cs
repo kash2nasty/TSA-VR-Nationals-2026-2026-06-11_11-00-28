@@ -217,7 +217,7 @@ namespace Decrypted.Interaction
 
             // Announce the commit beat exactly once, when we first become ready.
             if (_armed && !wasArmed)
-                EventBus.Publish(new ShowHintEvent("Decryption ready — pull the lever.", 4f));
+                EventBus.Publish(new ShowHintEvent("Decryption ready. Pull the lever.", 4f));
         }
 
         private bool KeyMatches(int r0, int r1, int r2)
