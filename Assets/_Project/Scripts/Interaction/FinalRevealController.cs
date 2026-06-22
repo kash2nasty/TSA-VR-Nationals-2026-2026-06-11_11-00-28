@@ -75,12 +75,21 @@ namespace Decrypted.Interaction
         private MaterialPropertyBlock _mpb;
         private bool _started;
         private bool _chordPlayed;
+        private Vector3[] _stageBaseScales;
 
         // ----------------------------------------------------------------- life
 
         private void Awake()
         {
             _mpb = new MaterialPropertyBlock();
+            // Cache each stage's authored scale so the morph can grow/shrink them
+            // smoothly instead of popping renderers on and off.
+            if (_stages != null)
+            {
+                _stageBaseScales = new Vector3[_stages.Length];
+                for (int i = 0; i < _stages.Length; i++)
+                    if (_stages[i] != null) _stageBaseScales[i] = _stages[i].transform.localScale;
+            }
             if (_conclusionLabel != null) _conclusionLabel.text = ConclusionText;
             if (_conclusionGroup != null) _conclusionGroup.alpha = 0f;
             if (_spinRoot == null) _spinRoot = transform;
@@ -175,10 +184,16 @@ namespace Decrypted.Interaction
             var r = _stages[idx];
 
             // Dissolve: 0 = solid, 1 = gone. Emissive blooms near the hand-off.
-            float dissolve = 1f - Mathf.Clamp01(presence);
-            float bloom = Mathf.Sin(Mathf.Clamp01(presence) * Mathf.PI) * _stageEmissivePeak;
+            float p = Mathf.Clamp01(presence);
+            float dissolve = 1f - p;
+            float bloom = Mathf.Sin(p * Mathf.PI) * _stageEmissivePeak;
 
-            r.enabled = presence > 0.001f;
+            // Smoothly scale the stage in/out so the morph reads as a transformation
+            // rather than a hard pop (the URP/Lit materials have no _Dissolve).
+            if (_stageBaseScales != null && idx < _stageBaseScales.Length && _stageBaseScales[idx] != Vector3.zero)
+                r.transform.localScale = _stageBaseScales[idx] * Mathf.Lerp(0.12f, 1f, p);
+
+            r.enabled = p > 0.02f;
             r.GetPropertyBlock(_mpb);
             _mpb.SetFloat(DissolveID, dissolve);
             _mpb.SetColor(EmissionColorID, _stageEmissive * bloom);
